@@ -1,0 +1,831 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Ticket Summary Report</title>
+    <style>
+        /* ==============================================
+           Modern Email CSS
+           (รองรับใน Gmail, Apple Mail และ Modern Webmail ส่วนใหญ่)
+        ================================================= */
+        
+        /* Reset & Base Typography */
+        body { margin: 0; padding: 0; background-color: #e2e8f0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-font-smoothing: antialiased; }
+        
+        .email-wrapper { padding: 40px 20px; background-color: #e2e8f0; }
+        
+        /* Main Container */
+        .email-container {
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header (พร้อม Fallback สีทึบสำหรับ Outlook) */
+        .header {
+            background-color: #1e3a8a;
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            padding: 40px 30px;
+            text-align: center;
+            border-bottom: 5px solid #60a5fa;
+        }
+        
+        .header h3 { color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .header p { color: #bfdbfe; margin: 10px 0 0 0; font-size: 15px; font-weight: 500; opacity: 0.9; }
+
+        /* Content Area */
+        .content-area { padding: 40px 35px; }
+        
+        .greeting { font-size: 16px; color: #1e293b; font-weight: 700; margin-top: 0; }
+        .intro { font-size: 15px; color: #475569; line-height: 1.6; margin-bottom: 30px; }
+
+        /* Cards/Sections */
+        .card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            margin: 30px 0;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
+        }
+        .card-header {
+            background-color: #f8fafc;
+            padding: 16px 20px;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 15px;
+        }
+        .card-body { padding: 25px; }
+        .card-body.no-pad { padding: 0; }
+
+        /* Information Table */
+        .info-table { width: 100%; border-collapse: collapse; margin: 0; font-size: 14px; }
+        .info-table td { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; }
+        .info-table tr:last-child td { border-bottom: none; }
+        .label-col { width: 40%; color: #64748b; font-weight: 600; }
+        .val-col { color: #0f172a; font-weight: 700; }
+
+        /* Badges (ป้ายกำกับสถานะ/หมวดหมู่) */
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-cat { background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+        .badge-new { background-color: #3b82f6; color: #ffffff; }
+        .badge-assigned { background-color: #f59e0b; color: #ffffff; }
+        .badge-pending { background-color: #f97316; color: #ffffff; }
+        .badge-solved { background-color: #10b981; color: #ffffff; }
+        .badge-closed { background-color: #64748b; color: #ffffff; }
+
+        /* Buttons & Call to Action */
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            text-align: center;
+            background-color: #1e3a8a; 
+            color: #ffffff !important; 
+            box-shadow: 0 4px 10px rgba(30, 58, 138, 0.25);
+            transition: all 0.2s ease;
+            border: none;
+        }
+        .btn:hover { background-color: #1e40af; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(30, 58, 138, 0.35); }
+        
+        /* Filter Links */
+        .filter-link {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 0 6px 8px 0;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .filter-all { background-color: #475569; color: #ffffff; border: 1px solid #475569; }
+        .filter-all:hover { background-color: #334155; }
+        .filter-new { background-color: #ffffff; color: #3b82f6; border: 1px solid #3b82f6; }
+        .filter-new:hover { background-color: #eff6ff; }
+        .filter-assigned { background-color: #ffffff; color: #f59e0b; border: 1px solid #f59e0b; }
+        .filter-assigned:hover { background-color: #fffbeb; }
+
+        /* Individual Ticket Styling */
+        .ticket-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            background-color: #ffffff;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        .ticket-item:hover { box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08); border-color: #94a3b8; transform: translateY(-2px); }
+        
+        .ticket-header {
+            padding: 16px 20px;
+            background-color: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+        }
+        .ticket-title { font-weight: 800; color: #1e293b; font-size: 15px; margin-left: 12px; vertical-align: middle; }
+        
+        .ticket-body { padding: 20px; font-size: 14px; color: #475569; line-height: 1.8; }
+        .ticket-body strong { color: #1e293b; }
+        
+        .text-link { color: #2563eb; text-decoration: none; font-weight: 700; display: inline-block; margin-top: 15px; }
+        .text-link:hover { text-decoration: underline; color: #1d4ed8; }
+
+        /* Footer */
+        .footer { text-align: left; padding-top: 35px; border-top: 2px dashed #e2e8f0; margin-top: 45px; }
+        .footer p { margin-bottom: 0; font-size: 14px; color: #64748b; line-height: 1.6; }
+        .footer b { color: #1e3a8a; font-size: 16px; font-weight: 800; display: block; margin-top: 6px; }
+        
+        /* Highlight Number Box */
+        .highlight-box {
+            display: inline-block;
+            font-size: 18px;
+            color: #1e3a8a;
+            font-weight: 800;
+            background-color: #eff6ff;
+            padding: 10px 25px;
+            border-radius: 10px;
+            border: 1px solid #bfdbfe;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="email-container">
+            
+            <div class="header">
+                <h3>Daily Ticket Summary Report</h3>
+                <p>ระบบรายงานสรุปข้อมูลประจำวันที่ 10/06/2026</p>
+            </div>
+
+            <div class="content-area">
+                <p class="greeting">เรียน ทีมบริหารและปฏิบัติการเครือข่าย,</p>
+                <p class="intro">ระบบได้ทำการรวบรวมและสรุปรายการทิกเก็ต (Ticket Update) ประจำวัน รายละเอียดข้อมูลของรีพอร์ตชุดนี้มีดังต่อไปนี้:</p>
+
+                <!-- Daily Report Info -->
+                <div class="card">
+                    <div class="card-header">
+                        📋 รีพอร์ทประจำวัน (Daily report)
+                    </div>
+                    <div class="card-body no-pad">
+                        <table class="info-table">
+                            <tr>
+                                <td class="label-col">รหัสรีพอร์ต (Report ID):</td>
+                                <td class="val-col" style="font-family: 'Courier New', Courier, monospace; color: #2563eb;">RP-2026-9941A</td>
+                            </tr>
+                            <tr>
+                                <td class="label-col">ชื่อรายการรีพอร์ต:</td>
+                                <td class="val-col">IT Support & Network Security Status</td>
+                            </tr>
+                            <tr>
+                                <td class="label-col">หมวดหมู่ (Category):</td>
+                                <td><span class="badge badge-cat">Infrastructure & Support</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Chart Image -->
+                <div class="card">
+                    <div class="card-header">
+                        📊 สรุปสถานะการดำเนินงาน (Ticket Chart)
+                    </div>
+                    <div class="card-body" style="text-align: center;">
+                        <div class="highlight-box">
+                            Total Tickets ทั้งหมด: 45
+                        </div>
+                        <div>
+                            <img src="https://quickchart.io/chart?w=500&h=300&c={type:'pie',data:{labels:['New','Assigned','Pending','Solved','Closed'],datasets:[{data:[10,15,5,10,5],backgroundColor:['%233b82f6','%23f59e0b','%23f97316','%2310b981','%2364748b'],borderWidth:2,borderColor:'%23ffffff'}]},options:{plugins:{datalabels:{color:'%23ffffff',font:{weight:'bold',size:15}},legend:{position:'right',labels:{font:{size:14,family:'Arial',weight:'bold'},padding:20}}}}}" alt="Ticket Distribution Pie Chart" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Tickets -->
+                <div class="card">
+                    <div class="card-header">
+                        🔥 Recent Tickets
+                    </div>
+                    
+                    <div class="card-body">
+                        <!-- Ticket 1 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-new">New</span>
+                                <span class="ticket-title">Report ID: 335001 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Bangkok Hospital<br>
+                                <strong>Status:</strong> New<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 2 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-new">New</span>
+                                <span class="ticket-title">Report ID: 335002 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Ministry of Finance<br>
+                                <strong>Status:</strong> New<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 3 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-new">New</span>
+                                <span class="ticket-title">Report ID: 335003 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> PTT Head Office<br>
+                                <strong>Status:</strong> New<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 4 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-new">New</span>
+                                <span class="ticket-title">Report ID: 335004 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> SCG Bangsue<br>
+                                <strong>Status:</strong> New<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 5 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-new">New</span>
+                                <span class="ticket-title">Report ID: 335005 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Chonburi Evolution School<br>
+                                <strong>Status:</strong> New<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 6 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-new">New</span>
+                                <span class="ticket-title">Report ID: 335006 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Bangkok Hospital<br>
+                                <strong>Status:</strong> New<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 7 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-new">New</span>
+                                <span class="ticket-title">Report ID: 335007 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Ministry of Finance<br>
+                                <strong>Status:</strong> New<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 8 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-new">New</span>
+                                <span class="ticket-title">Report ID: 335008 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> PTT Head Office<br>
+                                <strong>Status:</strong> New<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 9 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-new">New</span>
+                                <span class="ticket-title">Report ID: 335009 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> SCG Bangsue<br>
+                                <strong>Status:</strong> New<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 10 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-new">New</span>
+                                <span class="ticket-title">Report ID: 335010 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Chonburi Evolution School<br>
+                                <strong>Status:</strong> New<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 11 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-assigned">Assigned</span>
+                                <span class="ticket-title">Report ID: 335011 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Bangkok Hospital<br>
+                                <strong>Status:</strong> Assigned<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 12 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-assigned">Assigned</span>
+                                <span class="ticket-title">Report ID: 335012 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Ministry of Finance<br>
+                                <strong>Status:</strong> Assigned<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 13 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-assigned">Assigned</span>
+                                <span class="ticket-title">Report ID: 335013 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> PTT Head Office<br>
+                                <strong>Status:</strong> Assigned<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 14 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-assigned">Assigned</span>
+                                <span class="ticket-title">Report ID: 335014 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> SCG Bangsue<br>
+                                <strong>Status:</strong> Assigned<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 15 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-assigned">Assigned</span>
+                                <span class="ticket-title">Report ID: 335015 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Chonburi Evolution School<br>
+                                <strong>Status:</strong> Assigned<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 16 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-assigned">Assigned</span>
+                                <span class="ticket-title">Report ID: 335016 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Bangkok Hospital<br>
+                                <strong>Status:</strong> Assigned<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 17 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-assigned">Assigned</span>
+                                <span class="ticket-title">Report ID: 335017 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Ministry of Finance<br>
+                                <strong>Status:</strong> Assigned<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 18 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-assigned">Assigned</span>
+                                <span class="ticket-title">Report ID: 335018 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> PTT Head Office<br>
+                                <strong>Status:</strong> Assigned<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 19 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-assigned">Assigned</span>
+                                <span class="ticket-title">Report ID: 335019 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> SCG Bangsue<br>
+                                <strong>Status:</strong> Assigned<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 20 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-assigned">Assigned</span>
+                                <span class="ticket-title">Report ID: 335020 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Chonburi Evolution School<br>
+                                <strong>Status:</strong> Assigned<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 21 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-assigned">Assigned</span>
+                                <span class="ticket-title">Report ID: 335021 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Bangkok Hospital<br>
+                                <strong>Status:</strong> Assigned<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 22 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-assigned">Assigned</span>
+                                <span class="ticket-title">Report ID: 335022 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Ministry of Finance<br>
+                                <strong>Status:</strong> Assigned<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 23 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-assigned">Assigned</span>
+                                <span class="ticket-title">Report ID: 335023 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> PTT Head Office<br>
+                                <strong>Status:</strong> Assigned<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 24 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-assigned">Assigned</span>
+                                <span class="ticket-title">Report ID: 335024 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> SCG Bangsue<br>
+                                <strong>Status:</strong> Assigned<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 25 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-assigned">Assigned</span>
+                                <span class="ticket-title">Report ID: 335025 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Chonburi Evolution School<br>
+                                <strong>Status:</strong> Assigned<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 26 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-pending">Pending</span>
+                                <span class="ticket-title">Report ID: 335026 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Bangkok Hospital<br>
+                                <strong>Status:</strong> Pending<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 27 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-pending">Pending</span>
+                                <span class="ticket-title">Report ID: 335027 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Ministry of Finance<br>
+                                <strong>Status:</strong> Pending<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 28 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-pending">Pending</span>
+                                <span class="ticket-title">Report ID: 335028 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> PTT Head Office<br>
+                                <strong>Status:</strong> Pending<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 29 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-pending">Pending</span>
+                                <span class="ticket-title">Report ID: 335029 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> SCG Bangsue<br>
+                                <strong>Status:</strong> Pending<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 30 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-pending">Pending</span>
+                                <span class="ticket-title">Report ID: 335030 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Chonburi Evolution School<br>
+                                <strong>Status:</strong> Pending<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 31 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-solved">Solved</span>
+                                <span class="ticket-title">Report ID: 335031 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Bangkok Hospital<br>
+                                <strong>Status:</strong> Solved<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 32 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-solved">Solved</span>
+                                <span class="ticket-title">Report ID: 335032 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Ministry of Finance<br>
+                                <strong>Status:</strong> Solved<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 33 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-solved">Solved</span>
+                                <span class="ticket-title">Report ID: 335033 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> PTT Head Office<br>
+                                <strong>Status:</strong> Solved<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 34 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-solved">Solved</span>
+                                <span class="ticket-title">Report ID: 335034 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> SCG Bangsue<br>
+                                <strong>Status:</strong> Solved<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 35 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-solved">Solved</span>
+                                <span class="ticket-title">Report ID: 335035 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Chonburi Evolution School<br>
+                                <strong>Status:</strong> Solved<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 36 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-solved">Solved</span>
+                                <span class="ticket-title">Report ID: 335036 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Bangkok Hospital<br>
+                                <strong>Status:</strong> Solved<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 37 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-solved">Solved</span>
+                                <span class="ticket-title">Report ID: 335037 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Ministry of Finance<br>
+                                <strong>Status:</strong> Solved<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 38 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-solved">Solved</span>
+                                <span class="ticket-title">Report ID: 335038 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> PTT Head Office<br>
+                                <strong>Status:</strong> Solved<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 39 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-solved">Solved</span>
+                                <span class="ticket-title">Report ID: 335039 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> SCG Bangsue<br>
+                                <strong>Status:</strong> Solved<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 40 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-solved">Solved</span>
+                                <span class="ticket-title">Report ID: 335040 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Chonburi Evolution School<br>
+                                <strong>Status:</strong> Solved<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 41 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-closed">Closed</span>
+                                <span class="ticket-title">Report ID: 335041 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Bangkok Hospital<br>
+                                <strong>Status:</strong> Closed<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 42 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-closed">Closed</span>
+                                <span class="ticket-title">Report ID: 335042 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Ministry of Finance<br>
+                                <strong>Status:</strong> Closed<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 43 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-closed">Closed</span>
+                                <span class="ticket-title">Report ID: 335043 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> PTT Head Office<br>
+                                <strong>Status:</strong> Closed<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 44 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-closed">Closed</span>
+                                <span class="ticket-title">Report ID: 335044 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> SCG Bangsue<br>
+                                <strong>Status:</strong> Closed<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Ticket 45 -->
+                        <div class="ticket-item">
+                            <div class="ticket-header">
+                                <span class="badge badge-closed">Closed</span>
+                                <span class="ticket-title">Report ID: 335045 - IT Support Request</span>
+                            </div>
+                            <div class="ticket-body">
+                                <strong>Project:</strong> Chonburi Evolution School<br>
+                                <strong>Status:</strong> Closed<br>
+                                <strong>Last Updated:</strong> Today 09:00 AM<br>
+                                <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" class="text-link">View ticket details in system &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Link to System -->
+                        <div style="text-align: center; margin-top: 40px; margin-bottom: 10px;">
+                            <a href="https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline; font-size: 15px; font-weight: 600;">https://itservicedesk.sysnect.co.th/index.php?redirect=ticket_{ID}</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="footer">
+                    <p>
+                        ขอแสดงความนับถือ,<br>
+                        <b>IT Support & Enterprise Security Team</b>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

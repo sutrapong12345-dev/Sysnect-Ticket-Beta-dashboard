@@ -1,0 +1,1433 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Prompt:wght@300;400;500;600;700;800&display=swap');
+
+/* ==============================================
+   CSS Variables (Design Tokens)
+================================================= */
+:root {
+    /* Light Theme (Default) */
+    --bg-main: #f0f4f8;
+    --bg-gradient: radial-gradient(at 0% 0%, hsla(217, 100%, 94%, 1) 0, transparent 50%), 
+                   radial-gradient(at 100% 0%, hsla(205, 100%, 92%, 1) 0, transparent 50%), 
+                   radial-gradient(at 100% 100%, hsla(230, 100%, 95%, 1) 0, transparent 50%), 
+                   radial-gradient(at 0% 100%, hsla(190, 100%, 93%, 1) 0, transparent 50%);
+    --bg-card: rgba(255, 255, 255, 0.80);
+    --bg-card-solid: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: rgba(226, 232, 240, 0.8);
+    --border-solid: #e2e8f0;
+    
+    /* Brand Colors */
+    --sysnect-blue: #1a365d;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --accent: #f59e0b;
+    
+    /* Status Colors */
+    --status-new: #3b82f6;
+    --status-assigned: #f59e0b;
+    --status-pending: #ef4444;
+    --status-solved: #10b981;
+    --status-closed: #64748b;
+
+    /* Shadows & Effects */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    --glass-blur: blur(12px);
+    
+    /* Layout */
+    --nav-height: 72px;
+}
+
+[data-theme="dark"] {
+    /* Dark Theme */
+    --bg-main: #0f172a;
+    --bg-gradient: radial-gradient(at 0% 0%, hsla(220, 100%, 15%, 1) 0, transparent 50%), 
+                   radial-gradient(at 100% 0%, hsla(200, 100%, 16%, 1) 0, transparent 50%), 
+                   radial-gradient(at 100% 100%, hsla(230, 100%, 14%, 1) 0, transparent 50%), 
+                   radial-gradient(at 0% 100%, hsla(190, 100%, 12%, 1) 0, transparent 50%);
+    --bg-card: rgba(30, 41, 59, 0.70);
+    --bg-card-solid: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border-color: rgba(51, 65, 85, 0.6);
+    --border-solid: #334155;
+    
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+    --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* ==============================================
+   Reset & Global Styles
+================================================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-main);
+    background-image: var(--bg-gradient);
+    background-attachment: fixed;
+    color: var(--text-main);
+    transition: background-color 0.4s ease, color 0.4s ease, background-image 0.4s ease;
+    overflow-x: hidden;
+    overflow-y: auto;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+}
+
+/* อนุญาตให้คลุมดำเฉพาะส่วนรายละเอียดตั๋วได้ */
+.ticket-detail-full, .ticket-detail-short {
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+/* Tech Background Image Overlay */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url('bg-tech.png'); /* โหลดรูปภาพจากไฟล์นี้ */
+    background-size: cover;
+    background-position: center;
+    opacity: 0.15; /* ปรับความจางให้เป็นแค่ Texture บางๆ จะได้ไม่กวนสายตา */
+    mix-blend-mode: luminosity; /* ให้รูปภาพกลืนไปกับสี Gradient ของ Theme (Light/Dark) */
+    z-index: -1;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+[data-theme="dark"] body::before {
+    opacity: 0.08; /* ในโหมด Dark ให้จางลงอีกนิดเพื่อให้ดูลึกลับ */
+    mix-blend-mode: overlay;
+}
+
+/* ==============================================
+   Typography
+================================================= */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.mono-text {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* ==============================================
+   Components: Glass Card
+================================================= */
+.glass-card {
+    background: var(--bg-card);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: var(--shadow-glass), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.glass-card:hover {
+    box-shadow: var(--shadow-lg), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+    border-color: var(--primary);
+    transform: translateY(-4px);
+}
+
+/* ==============================================
+   Navbar
+================================================= */
+.top-navbar {
+    height: var(--nav-height);
+    padding: 0 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-card);
+    backdrop-filter: var(--glass-blur);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.brand-logo {
+    height: 50px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+[data-theme="dark"] .brand-logo {
+    filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(255,255,255,0.1));
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg-main);
+    padding: 8px 16px;
+    border-radius: 24px;
+    width: 380px;
+    border: 1px solid var(--border-solid);
+    transition: all 0.2s;
+}
+
+.search-box:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    background: var(--bg-card-solid);
+}
+
+.search-box input {
+    border: none;
+    background: transparent;
+    outline: none;
+    margin-left: 12px;
+    width: 100%;
+    font-family: inherit;
+    color: var(--text-main);
+    font-size: 14px;
+}
+.search-box input::placeholder {
+    color: var(--text-muted);
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* ==============================================
+   Buttons & Controls
+================================================= */
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: 1px solid var(--border-solid);
+    border-radius: 8px;
+    background: var(--bg-card-solid);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-main);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: inherit;
+}
+
+.btn-action:hover {
+    background: var(--bg-main);
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-action:active {
+    transform: translateY(0) scale(0.95);
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+}
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    color: white;
+}
+
+.btn-icon-only {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+}
+
+.theme-toggle {
+    background: transparent;
+    border: 1px solid transparent;
+}
+.theme-toggle:hover {
+    background: var(--bg-main);
+    border-color: var(--border-solid);
+}
+
+/* ==============================================
+   Dashboard Layout
+================================================= */
+.dashboard-container {
+    display: flex;
+    justify-content: space-between;
+    min-height: calc(100vh - var(--nav-height));
+    padding: 24px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.left-panel {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    padding-bottom: 24px; /* เผื่อที่ว่างด้านล่างสุดตอนเลื่อน */
+}
+
+/* ซ่อน Scrollbar ของ left-panel ให้ดูสะอาดตา (แต่ยัง Scroll ได้) */
+.left-panel::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+}
+
+.right-panel {
+    width: 0%;
+    opacity: 0;
+    margin-left: 0;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* When detail panel is ACTIVE */
+.dashboard-container.split-active .left-panel {
+    width: calc(50% - 12px);
+    max-width: 1400px; /* ขยายให้เต็มพื้นที่ 50% ของหน้าจอ */
+    margin: 0;
+}
+
+.dashboard-container.split-active .right-panel {
+    width: calc(50% - 12px);
+    opacity: 1;
+    margin-left: 24px;
+}
+
+/* ==============================================
+   Chart Card
+================================================= */
+.chart-card {
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+
+.chart-title {
+    font-size: 24px;
+    margin-bottom: 8px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--sysnect-blue), var(--primary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+[data-theme="dark"] .chart-title {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.chart-subtitle {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.custom-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    width: 100%;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: var(--bg-main);
+    border: 1px solid var(--border-solid);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.legend-item:hover {
+    border-color: currentColor;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.legend-item.active {
+    background: var(--bg-card-solid);
+    border-color: var(--primary);
+    color: var(--text-main);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+}
+
+.legend-color {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.chart-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    height: 270px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 8px auto 0;
+}
+
+/* ล็อคขนาดบนหน้าจอ Desktop เพื่อไม่ให้ Container หดตัวระหว่าง Animation ซึ่งจะทำให้กราฟต้อง Resize รัวๆ (กระตุก) */
+@media (min-width: 1025px) {
+    .chart-wrapper {
+        width: 440px;
+        flex-shrink: 0;
+    }
+}
+
+.center-stats {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+.center-stats .count {
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1;
+    font-family: 'JetBrains Mono', monospace;
+}
+.center-stats .label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Last Updated Status below chart */
+.last-update-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+    padding-bottom: 24px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+}
+.last-update-container .sync-icon {
+    font-size: 16px;
+    transition: transform 0.5s ease;
+}
+.last-update-container.updating .sync-icon {
+    animation: spin-anim 1s linear infinite;
+    color: var(--primary);
+}
+@keyframes spin-anim {
+    100% { transform: rotate(360deg); }
+}
+
+/* ==============================================
+   Ticket List Panel
+================================================= */
+.ticket-panel {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ─── Filter bar ใน ticket panel (ย้ายจาก navbar) ─── */
+.ticket-filter-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 20px 10px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-main);
+}
+.filter-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.filter-row-top { width: 100%; }
+.filter-row-top select { width: 100%; }
+.filter-row-bottom { flex-wrap: nowrap; }
+.ticket-filter-bar select,
+.ticket-filter-bar input[type="date"] {
+    padding: 5px 9px;
+    font-size: 12.5px;
+    border: 1px solid var(--border-solid);
+    border-radius: 8px;
+    background: var(--bg-card-solid);
+    color: var(--text-main);
+    font-family: inherit;
+    cursor: pointer;
+    min-width: 0;
+    outline: none;
+}
+.ticket-filter-bar input[type="date"] { min-width: 110px; }
+.ticket-filter-bar .btn-filter-clear {
+    padding: 5px 10px;
+    font-size: 12.5px;
+    border: 1px solid rgba(239,68,68,0.4);
+    border-radius: 8px;
+    background: transparent;
+    color: #ef4444;
+    font-family: inherit;
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    transition: background 0.2s;
+}
+.ticket-filter-bar .btn-filter-clear:hover { background: rgba(239,68,68,0.08); }
+.ticket-filter-bar .filter-sep { color: var(--text-muted); font-size: 11px; flex-shrink: 0; }
+
+/* ─── Ticket card rows (new 2-row layout) ─── */
+.ticket-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-right: 36px;
+}
+.ticket-meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.panel-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(var(--bg-card-rgb), 0.9);
+    border-radius: 16px 16px 0 0;
+}
+
+.panel-title {
+    font-size: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 10px var(--primary);
+}
+
+.view-controls {
+    display: flex;
+    gap: 8px;
+    background: var(--bg-main);
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid var(--border-solid);
+}
+.view-btn {
+    background: transparent;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.view-btn.active {
+    background: var(--bg-card-solid);
+    color: var(--primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.ticket-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-solid) transparent;
+}
+.ticket-content::-webkit-scrollbar { width: 6px; }
+.ticket-content::-webkit-scrollbar-track { background: transparent; }
+.ticket-content::-webkit-scrollbar-thumb { background: var(--border-solid); border-radius: 3px; }
+
+/* ==============================================
+   Ticket Item (List View)
+================================================= */
+.ticket-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* ⚡ Legend ใต้กราฟ (จุดสี + สถานะ + จำนวน + %) */
+.chart-legend-detailed {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    width: 100%;
+    max-width: 360px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.cl-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: var(--bg-card-solid, #fff);
+    border: 1px solid var(--border-solid);
+    border-radius: 10px;
+    padding: 7px 12px;
+    cursor: pointer;
+    font: inherit;
+    color: var(--text-main);
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+/* ─── Duration badge บน ticket card ─── */
+.badge-duration {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+.badge-duration.ongoing {
+    background: rgba(245, 158, 11, 0.1);
+    color: #b45309;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+}
+.badge-duration.resolved {
+    background: rgba(16, 185, 129, 0.1);
+    color: #047857;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+}
+[data-theme="dark"] .badge-duration.ongoing  { background: rgba(245,158,11,0.15); color: #fbbf24; }
+[data-theme="dark"] .badge-duration.resolved { background: rgba(16,185,129,0.15); color: #34d399; }
+.cl-row:hover {
+    border-color: var(--primary);
+    transform: translateX(2px);
+}
+.cl-row.active {
+    border-color: var(--primary);
+    background: rgba(37, 99, 235, 0.07);
+    box-shadow: var(--shadow-sm);
+}
+.cl-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.cl-label {
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.3px;
+}
+.cl-count {
+    margin-left: auto;
+    font-weight: 700;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+}
+.cl-pct {
+    font-size: 12px;
+    color: var(--text-muted);
+    min-width: 50px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.ticket-item {
+    background: var(--bg-card-solid);
+    border: 1px solid var(--border-solid);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    gap: 12px;
+    /* ⚡ ระบุเฉพาะ property ที่เปลี่ยนตอน hover (เลี่ยง transition: all ที่คำนวณทุกอย่าง) */
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                box-shadow 0.25s ease,
+                border-color 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    animation: slideInUpAnim 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+    /* ⚡ Virtualize: ข้ามการ render การ์ดที่อยู่นอกจอ (ลื่นขึ้นมากเมื่อมีหลายร้อยใบ) */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 200px;
+}
+
+.ticket-item:nth-child(1) { animation-delay: 0.1s; }
+.ticket-item:nth-child(2) { animation-delay: 0.2s; }
+.ticket-item:nth-child(3) { animation-delay: 0.3s; }
+.ticket-item:nth-child(4) { animation-delay: 0.4s; }
+.ticket-item:nth-child(5) { animation-delay: 0.5s; }
+.ticket-item:nth-child(n+6) { animation-delay: 0.6s; }
+
+.ticket-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--item-color, var(--primary));
+}
+
+.ticket-item:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: var(--shadow-md);
+    border-color: var(--item-color, var(--primary));
+}
+
+/* Hover Focus Mode — ใช้แค่ opacity (ลื่น) ตัด filter: blur ที่ทำให้การ์ดทุกใบ repaint ตอนเลื่อนเมาส์ */
+.ticket-list:hover .ticket-item:not(:hover) {
+    opacity: 0.55;
+    transform: scale(0.985);
+}
+
+.btn-copy-id {
+    background: transparent;
+    border: 1px solid var(--border-solid);
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    transition: all 0.2s;
+}
+.btn-copy-id:hover {
+    background: var(--bg-main);
+    color: var(--primary);
+    border-color: var(--primary);
+    transform: scale(1.05);
+}
+
+
+
+.ticket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.ticket-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ticket-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-main);
+    color: var(--text-muted);
+    border: 1px solid var(--border-solid);
+}
+.badge.date {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.ticket-body {
+    margin-top: 4px;
+}
+
+.ticket-project {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 8px;
+}
+
+.ticket-detail {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.ticket-detail.expanded {
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+}
+
+.ticket-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border-solid);
+}
+
+.btn-text {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.btn-text:hover {
+    text-decoration: underline;
+}
+
+/* ==============================================
+   Table View
+================================================= */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    background: var(--bg-card-solid);
+    border-radius: 12px;
+    border: 1px solid var(--border-solid);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.data-table th {
+    padding: 16px;
+    background: var(--bg-main);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-solid);
+}
+
+.data-table td {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-solid);
+    color: var(--text-main);
+    font-size: 14px;
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tbody tr {
+    transition: background 0.2s;
+}
+
+.data-table tbody tr:hover {
+    background: var(--bg-main);
+}
+
+.table-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.table-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* ==============================================
+   Skeleton Loading
+================================================= */
+.skeleton {
+    background: linear-gradient(90deg, var(--bg-main) 25%, var(--border-solid) 50%, var(--bg-main) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-text {
+    height: 16px;
+    margin-bottom: 8px;
+    width: 100%;
+}
+.skeleton-text.short { width: 40%; }
+.skeleton-title { height: 24px; width: 60%; margin-bottom: 16px; }
+
+
+/* ==============================================
+   Responsive
+================================================= */
+@media (max-width: 1024px) {
+    .dashboard-container {
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+        padding: 16px;
+    }
+    .left-panel, .right-panel {
+        flex: none;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    /* Default hidden on mobile */
+    .right-panel {
+        display: none;
+        margin-left: 0 !important;
+        margin-top: 24px;
+    }
+    
+    /* Show when active on mobile */
+    .dashboard-container.split-active .right-panel {
+        display: flex;
+        width: 100%;
+    }
+    
+    .dashboard-container.split-active .left-panel {
+        width: 100%;
+    }
+    .ticket-content {
+        height: 600px; /* Fixed height for scroll on mobile */
+    }
+
+    /* Top Navbar Mobile Fixes */
+    .top-navbar {
+        flex-direction: column;
+        height: auto;
+        padding: 16px;
+        gap: 16px;
+        position: static;
+    }
+    .nav-left, .search-box {
+        width: 100%;
+    }
+    .search-box input {
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .nav-right {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    /* Chart Mobile Fixes */
+    .chart-card {
+        padding: 24px 12px;
+    }
+    .chart-wrapper {
+        height: 300px;
+        max-width: 100%;
+        margin-top: 0;
+    }
+}
+
+/* ==============================================
+   Selective Export & FAB Styles
+================================================= */
+.ticket-checkbox-container {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+}
+
+.ticket-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--bg-card);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: grid;
+    place-content: center;
+}
+
+.ticket-checkbox::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    transform: scale(0);
+    transition: 120ms transform ease-in-out;
+    box-shadow: inset 1em 1em white;
+    background-color: white;
+    transform-origin: center;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+.ticket-checkbox:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.ticket-checkbox:checked::before {
+    transform: scale(1);
+}
+
+.ticket-checkbox:hover {
+    border-color: var(--primary);
+}
+
+/* Floating Action Bar */
+.export-fab {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(150px);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 100px;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    z-index: 1000;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.export-fab.visible {
+    transform: translateX(-50%) translateY(0);
+}
+
+.fab-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.fab-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+}
+.btn-cancel:hover {
+    background: var(--bg-body);
+}
+
+/* ==============================================
+   Print Styles (Export PDF)
+================================================= */
+.print-hide {
+    display: none !important;
+}
+
+@media print {
+    /* ซ่อน UI ที่ไม่จำเป็น */
+    .top-navbar, .export-fab, .ticket-content::-webkit-scrollbar, .center-stats { 
+        display: none !important; 
+    }
+    
+    /* แก้ปัญหาข้อความ Header กราฟล่องหนใน PDF (เพราะเราใช้ Gradient text ในจอปกติ) */
+    .chart-title {
+        background: none !important;
+        -webkit-text-fill-color: initial !important;
+        color: var(--primary) !important;
+    }
+    
+    /* บังคับให้โครงสร้างทั้งหมดคลายตัว ไม่ต้องมี Scrollbar */
+    html, body, .dashboard-container, .left-panel, .right-panel, .ticket-panel, .ticket-content { 
+        height: auto !important; 
+        max-height: none !important;
+        overflow: visible !important; 
+    }
+    
+    .dashboard-container { 
+        padding: 0; 
+        display: block; 
+    }
+    
+    .dashboard-container.split-active .left-panel { 
+        width: 100%; 
+        margin-bottom: 30px; 
+        page-break-after: always;
+    }
+    
+    .dashboard-container.split-active .right-panel { 
+        width: 100%; 
+        margin-left: 0; 
+        height: auto; 
+        display: block; 
+        opacity: 1; 
+    }
+    
+    /* ป้องกันการ์ดขาดครึ่งหน้ากระดาษ */
+    .ticket-item {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        border: 1px solid #cbd5e1;
+        box-shadow: none !important;
+        margin-bottom: 15px;
+    }
+    
+    /* ปรับสีกราฟและพื้นหลัง */
+    .glass-card {
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
+    }
+}
+
+/* ==============================================
+   Priority Badges
+================================================= */
+.badge-priority {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid transparent;
+}
+.priority-critical {
+    background-color: #fee2e2;
+    color: #ef4444;
+    border-color: #fca5a5;
+}
+.priority-high {
+    background-color: #ffedd5;
+    color: #f97316;
+    border-color: #fdba74;
+}
+.priority-medium {
+    background-color: #fef9c3;
+    color: #eab308;
+    border-color: #fde047;
+}
+.priority-low {
+    background-color: #dcfce7;
+    color: #22c55e;
+    border-color: #86efac;
+}
+
+/* ==============================================
+   Keyframe Animations
+================================================= */
+@keyframes slideInUpAnim {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOutScaleAnim {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(1.05); visibility: hidden; }
+}
+
+@keyframes pulseGlowAnim {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.top-navbar {
+    animation: slideInUpAnim 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+.left-panel {
+    animation: slideInUpAnim 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards;
+}
+
+/* ==============================================
+   Mobile Responsiveness (Fix for Phone View)
+================================================= */
+@media (max-width: 900px) {
+    body {
+        overflow-y: auto !important;
+    }
+    .dashboard-container {
+        flex-direction: column;
+        height: auto !important;
+        padding: 10px;
+    }
+    .left-panel {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-y: visible !important;
+        padding-bottom: 0 !important;
+    }
+    .right-panel {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-top: 20px;
+        height: auto !important;
+    }
+    .dashboard-container.split-active .left-panel,
+    .dashboard-container.split-active .right-panel {
+        width: 100% !important;
+    }
+    .chart-card, .ticket-card {
+        min-height: auto !important;
+        height: auto !important;
+    }
+    .ticket-list {
+        max-height: none !important;
+        overflow-y: visible !important;
+    }
+    .top-navbar {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+        gap: 15px;
+    }
+    .nav-center, .search-container {
+        width: 100%;
+    }
+    .nav-right {
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+/* ==============================================
+   Export Options Modal
+================================================= */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+[data-theme="dark"] .modal-overlay {
+    background: rgba(15, 23, 42, 0.45);
+}
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+.modal-content {
+    background: var(--card-bg, #ffffff);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 450px;
+    padding: 30px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transform: scale(0.95);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    color: var(--text-main, #1e293b);
+}
+[data-theme="dark"] .modal-content {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #f8fafc;
+}
+.modal-overlay.active .modal-content {
+    transform: scale(1);
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #1a365d;
+}
+[data-theme="dark"] .modal-title { color: #60a5fa; }
+.btn-close-modal {
+    background: none; border: none; cursor: pointer;
+    color: #94a3b8; padding: 5px; border-radius: 50%;
+    transition: all 0.2s;
+}
+.btn-close-modal:hover { background: #f1f5f9; color: #ef4444; }
+[data-theme="dark"] .btn-close-modal:hover { background: #334155; }
+.export-option-group {
+    margin-bottom: 20px;
+}
+.export-label {
+    display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #64748b;
+}
+.export-select {
+    width: 100%; padding: 10px 15px; border-radius: 8px; border: 1px solid #e2e8f0;
+    background: #f8fafc; color: #1e293b; font-family: inherit; font-size: 15px;
+    outline: none; transition: border-color 0.2s;
+}
+[data-theme="dark"] .export-select { background: #0f172a; border-color: #334155; color: #e2e8f0; }
+.export-select:focus { border-color: #3b82f6; }
+.export-format-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+}
+.format-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 15px 10px; border: 2px solid #e2e8f0; border-radius: 12px;
+    background: transparent; cursor: pointer; color: #64748b;
+    transition: all 0.2s; font-family: inherit; font-weight: 600;
+}
+[data-theme="dark"] .format-btn { border-color: #334155; color: #94a3b8; }
+.format-btn:hover { border-color: #cbd5e1; background: #f8fafc; }
+[data-theme="dark"] .format-btn:hover { border-color: #475569; background: #1e293b; }
+.format-btn.selected { border-color: #3b82f6; color: #3b82f6; background: rgba(59, 130, 246, 0.05); }
+.format-icon { font-size: 32px; }
+.format-excel { color: #10b981; }
+.format-csv { color: #f59e0b; }
+.format-pdf { color: #ef4444; }
+.modal-actions {
+    display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;
+}
+.btn-export-submit {
+    background: #2563eb; color: white; border: none; padding: 10px 20px;
+    border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;
+    transition: background 0.2s; font-family: inherit;
+}
+.btn-export-submit:hover { background: #1d4ed8; }
+
+/* ==============================================
+   Print Styles (Selective Export)
+================================================= */
+@media print {
+    /* ซ่อนองค์ประกอบที่ไม่ได้ถูกเลือก */
+    .print-hide {
+        display: none !important;
+    }
+    
+    /* บังคับให้พื้นหลังตั๋วเป็นสีขาว ไม่เอา gradient ตอน print */
+    body {
+        background: #ffffff !important;
+        background-image: none !important;
+        color: #000000 !important;
+    }
+    
+    body::before {
+        display: none !important;
+    }
+    
+    .ticket-item {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: none !important;
+        margin-bottom: 20px !important;
+        background: #ffffff !important;
+    }
+    
+    /* ลบกรอบสกอร์เพื่อให้หน้ากระดาษยาวตามเนื้อหาเต็มๆ */
+    .ticket-list, .ticket-content {
+        max-height: none !important;
+        overflow: visible !important;
+        padding: 0 !important;
+    }
+    
+    /* ปรับแต่งตารางให้ขอบคมชัด */
+    .data-table {
+        border: 1px solid #e2e8f0;
+    }
+    .data-table th, .data-table td {
+        border: 1px solid #e2e8f0 !important;
+    }
+}
